@@ -73,9 +73,9 @@ function Navbar() {
             color="inherit"
             sx={{ "&.active": { color: "yellow" } }}
           >
-            Contact
+            Contacts
           </Button>
-          
+
           <InputBase
             placeholder="Search..."
             inputProps={{ 'aria-label': 'search' }}
