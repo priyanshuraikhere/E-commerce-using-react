@@ -73,7 +73,7 @@ function Navbar() {
             color="inherit"
             sx={{ "&.active": { color: "yellow" } }}
           >
-            Contacts
+            Contact
           </Button>
 
           <InputBase
