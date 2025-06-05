@@ -13,8 +13,9 @@ import {
   CardActions,
 } from "@mui/material";
 import Rating from "@mui/material/Rating";
-// import { useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
 function ProductDetails() {
   const { id } = useParams();
@@ -22,7 +23,7 @@ function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [addedToCart, setAddedToCart] = useState(false);
   
-  // const { addToCart } = useCart();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
 
 
@@ -52,19 +53,23 @@ function ProductDetails() {
           alignItems: "center",
         }}
       >
-        <CircularProgress size="5rem" />
+        <CircularProgress size="5rem"  sx={{ color: "#15213d" }} />
       </Container>
     );
   }
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <>
+    
+   
       <Button
         variant="outlined"
-        sx={{ mb: 2 }}
+        sx={{ mt:2 , ml:4 ,width:"100px" }}
         onClick={() => navigate("/products")}
       >
-        Back
+      <KeyboardBackspaceIcon sx={{ mr: 1 }} />
+      Back
       </Button>
+    <Container maxWidth="md" sx={{ mt: 4 , mb:8}}>
       <Card sx={{ display: "flex", flexDirection: "column", boxShadow: 4 }}>
         <CardMedia
           component="img"
@@ -89,7 +94,7 @@ function ProductDetails() {
               ({product.rating.count} reviews)
             </Typography>
           </Box>
-          <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
+          <Typography variant="h6"  sx={{ mt: 2 , color:"#1a2949"}}>
             ₹{product.price}
           </Typography>
           <Typography variant="body1" sx={{ mt: 2 }}>
@@ -103,10 +108,10 @@ function ProductDetails() {
                 variant="contained"
                 startIcon={<ShoppingCartIcon />}
                 onClick={() => {
-                  // addToCart(product);
+                  addToCart(product);
                   setAddedToCart(true);
                 }}
-                sx={{ mt: 4 }}
+                sx={{ mt: 4  , backgroundColor:"#131e36"}}
               >
                 Add to Cart
               </Button>
@@ -126,6 +131,7 @@ function ProductDetails() {
         </CardContent>
       </Card>
     </Container>
+     </>
   );
 }
 

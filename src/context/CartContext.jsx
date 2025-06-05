@@ -16,6 +16,7 @@ export function CartProvider({ children }) {
         return [...prevItems, { ...product, quantity: 1 }];
       }
     });
+    
   };
 
   const removeFromCart = (id) => {
