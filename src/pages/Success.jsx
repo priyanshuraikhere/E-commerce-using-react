@@ -1,8 +1,15 @@
 import React from "react";
+import { useEffect } from "react" ; 
 import { Container, Typography, Button } from "@mui/material";
 import { Link } from "react-router-dom";
+import { useCart } from "../context/CartContext";
 
 const Success = () => {
+   const { clearCart } = useCart();
+
+    useEffect(() => {
+    clearCart();
+  }, []);
   return (
     <Container sx={{ textAlign: "center", mt: 8 }}>
       <Typography variant="h3" color="success.main">🎉 Payment Successful! 🎉</Typography>

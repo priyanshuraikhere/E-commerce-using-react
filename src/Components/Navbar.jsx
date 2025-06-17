@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useContext } from "react";
 import {
   AppBar,
   Toolbar,
@@ -10,27 +9,38 @@ import {
   Badge,
   Stack,
   InputBase,
+  Avatar,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { ShoppingCart } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { useNavigate } from "react-router-dom";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import LoginIcon from "@mui/icons-material/Login";
-import LogoutIcon from "@mui/icons-material/Logout";
-import PlaceIcon from '@mui/icons-material/Place';
+import PlaceIcon from "@mui/icons-material/Place";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./Navbar.css"
+
+import { UserContext } from "../context/userContext";
 
 function Navbar() {
   const { cartItems } = useCart();
-
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  // const [anchorEl, setAnchorEl] = useState(null);
+  // const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [data, setData] = useState({ location: null, address: "", city: "" });
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  const username = localStorage.getItem("username") || "Guest";
+  const totalItems = cartItems.length;
+  const imageUrl = localStorage.getItem("profileImage");
+  const { profileImage } = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getLocationAndAddress = async () => {
@@ -44,10 +54,10 @@ function Navbar() {
           setData({
             location: coords,
             address: result.display_name,
-            city: result.address?.city,
+            city: result.address?.city || "Unknown",
           });
         } catch {
-          setData("Failed to fetch address");
+          setData((prev) => ({ ...prev, city: "Unable to fetch" }));
         }
       });
     };
@@ -72,7 +82,6 @@ function Navbar() {
       setSuggestions([]);
       return;
     }
-
     const lowerQuery = search.toLowerCase();
     const matched = allProducts.filter(
       (p) =>
@@ -82,17 +91,13 @@ function Navbar() {
     setSuggestions(matched.slice(0, 20));
   }, [search, allProducts]);
 
-  const totalItems = cartItems.length;
-
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-  const navigate = useNavigate();
-
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+
     navigate("/");
     toast.success("Logout successful!");
-   
-    // window.location.reload();
   };
 
   const handleSearchSubmit = () => {
@@ -103,12 +108,17 @@ function Navbar() {
     }
   };
 
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   return (
-  
-    
-     
     <AppBar position="sticky" sx={{ backgroundColor: "#0f172a", boxShadow: 3 }}>
-      <Toolbar sx={{ justifyContent: "space-between", py:0.3  }}>
+      <Toolbar sx={{ justifyContent: "space-between", py: 0.3 }}>
         <Typography
           variant="h5"
           fontWeight="bold"
@@ -127,12 +137,12 @@ function Navbar() {
             backgroundColor: "rgba(255, 255, 255, 0.2)",
             color: "white",
             borderRadius: 2,
-            marginRight: "80px",
+            marginRight: "130px",
           }}
         >
           <Typography variant="body1">
-            
-            <PlaceIcon sx={{ verticalAlign: "middle" }} /> City: {data.city}
+            <PlaceIcon sx={{ verticalAlign: "middle" }} /> City:{" "}
+            {data.city || "Loading..."}
           </Typography>
         </Box>
 
@@ -141,7 +151,7 @@ function Navbar() {
             component={NavLink}
             to="/"
             color="inherit"
-            sx={{ "&.active": { color: "yellow"  } }}
+            sx={{ "&.active": { color: "yellow" } }}
           >
             Home
           </Button>
@@ -155,11 +165,11 @@ function Navbar() {
           </Button>
           <Button
             component={NavLink}
-            to="/deals"
+            to="/wishlist"
             color="inherit"
-            sx={{ "&.active": {  color: "yellow" } }}
+            sx={{ "&.active": { color: "yellow" } }}
           >
-            Deals
+            Wishlist
           </Button>
           <Button
             component={NavLink}
@@ -176,30 +186,24 @@ function Navbar() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearchSubmit();
-                }
+                if (e.key === "Enter") handleSearchSubmit();
               }}
-              inputProps={{ "aria-label": "search" }}
               sx={{
                 color: "white",
                 backgroundColor: "rgba(255, 255, 255, 0.2)",
                 borderRadius: "4px",
                 padding: "1px 8px",
-                width: "550px",
+                width: "450px",
               }}
               endAdornment={
                 <IconButton
                   sx={{ color: "white" }}
-                  onClick={() => {
-                    handleSearchSubmit();
-                  }}
+                  onClick={handleSearchSubmit}
                 >
                   <SearchIcon />
                 </IconButton>
               }
             />
-
             {suggestions?.length > 0 && (
               <Box
                 sx={{
@@ -243,7 +247,112 @@ function Navbar() {
             )}
           </Box>
 
-          {!isLoggedIn ? (
+          {isLoggedIn ? (
+            <>
+              {/* <Box
+                onClick={handleMenuOpen}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  ml: 2,
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    mr: 1,
+                    bgcolor: imageUrl ? "transparent" : "#193e8f",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                  }}
+                  src={profileImage || undefined}
+                >
+                  {!imageUrl && username.charAt(0).toUpperCase()}
+                </Avatar>
+                <Typography color="white" fontWeight="bold">
+                  {username}
+                </Typography>
+              </Box>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem
+                  onClick={() => {
+                    navigate("/ProfileDetails");
+                    handleMenuClose();
+                  }}
+                >
+                  Profile
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    navigate("/account");
+                    handleMenuClose();
+                  }}
+                >
+                  Account
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleLogout();
+                    handleMenuClose();
+                  }}
+                >
+                  Logout
+                </MenuItem>
+              </Menu> */}
+
+              <Box className="dropdown-hover" sx={{ ml: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      mr: 1,
+                      bgcolor: imageUrl ? "transparent" : "#193e8f",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                    }}
+                    src={profileImage || undefined}
+                  >
+                    {!imageUrl && username.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Typography color="white" fontWeight="bold">
+                    {username}
+                  </Typography>
+                </Box>
+
+                <Box className="dropdown-content">
+                  <Box
+                    className="dropdown-item"
+                    onClick={() => navigate("/ProfileDetails")}
+                  >
+                    Profile
+                  </Box>
+                  <Box
+                    className="dropdown-item"
+                    onClick={() => navigate("/account")}
+                  >
+                    Account
+                  </Box>
+                  <Box className="dropdown-item" onClick={handleLogout}>
+                    Logout
+                  </Box>
+                </Box>
+              </Box>
+            </>
+          ) : (
             <Button
               component={NavLink}
               to="/login"
@@ -251,14 +360,6 @@ function Navbar() {
               sx={{ fontWeight: "bold" }}
             >
               Login <LoginIcon sx={{ verticalAlign: "middle", ml: 1 }} />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleLogout}
-              color="inherit"
-              sx={{ fontWeight: "bold" }}
-            >
-              Logout <LogoutIcon sx={{ verticalAlign: "middle", ml: 1 }} />
             </Button>
           )}
 
@@ -268,11 +369,8 @@ function Navbar() {
             </Badge>
           </IconButton>
         </Stack>
-   
-
       </Toolbar>
     </AppBar>
-  
   );
 }
 

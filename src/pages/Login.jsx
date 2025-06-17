@@ -1,98 +1,93 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TextField, Button, Typography, Box, Paper } from "@mui/material";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-
+import { toast } from "react-toastify";
 
 const Login = () => {
-  const [isSignup, setIsSignup] = useState(false);
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ username: "", password: "" });
   const navigate = useNavigate();
 
-  const handleToggle = () => {
-    setIsSignup(!isSignup);
-    setFormData({ email: "", password: "" });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    if (isSignup) {
-      localStorage.setItem("user", JSON.stringify(formData));
-      toast.success("Signup successful! Please login.");
-      setIsSignup(false);
-    } else {
-      if (
-        storedUser &&
-        formData.email === storedUser.email &&
-        formData.password === storedUser.password
-      ) {
-        localStorage.setItem("isLoggedIn", "true");
-           toast.success("Login successful!");
-        navigate("/");
+      const data = await response.json();
+      console.log("Login response:", data);
+      
 
-      } else {
-         toast.error("Invalid credentials");
+      if (!response.ok) {
+        throw new Error(data.message);
       }
+
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("username", formData.username); 
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("profileImage", `http://localhost:5000/uploads/${data.user.profileImage}`);
+
+     
+
+
+      toast.success("Login successful!");
+      navigate("/");
+    } catch (err) {
+      toast.error(err.message || "Login failed");
     }
   };
 
   return (
-    <> 
-   
-    
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-      <Paper elevation={3} sx={{ padding: 4, width: 400, textAlign: "center", borderRadius: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: 2 }}>
-          {isSignup ? "Signup" : "Login"}
+      <Paper elevation={3} sx={{ padding: 4, width: 400, textAlign: "center", borderRadius: 3 }}>
+        <Typography variant="h5" sx={{fontWeight: "bold" , mb: 2 }}>
+          Login
         </Typography>
         <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
+            label="Username"
             variant="outlined"
             margin="normal"
-            type="email"
-            label="Email"
             required
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            value={formData.username}
+            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
           />
           <TextField
             fullWidth
+            label="Password"
             variant="outlined"
             margin="normal"
             type="password"
-            label="Password"
             required
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
           />
           <Button
             fullWidth
-            variant="contained"
-            
             type="submit"
-            sx={{ mt: 2, padding: 1 , backgroundColor:"#131e36" }}
+            variant="contained"
+            sx={{ mt: 2, py: 1, backgroundColor: "#131e36" }}
           >
-            {isSignup ? "Signup" : "Login"}
+            Login
           </Button>
         </form>
-        <Typography sx={{ marginTop: 2 }}>
-          {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+        <Typography sx={{ mt: 2 }}>
+          Don't have an account?{" "}
           <Box
             component="span"
             sx={{ color: "#193e8f", cursor: "pointer", textDecoration: "underline" }}
-            onClick={handleToggle}
+            onClick={() => navigate("/signup")}
           >
-            {isSignup ? "Login" : "Signup"}
+            Signup
           </Box>
         </Typography>
       </Paper>
     </Box>
-     </>
   );
 };
 
