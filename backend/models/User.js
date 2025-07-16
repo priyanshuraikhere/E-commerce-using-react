@@ -15,7 +15,20 @@ const userSchema = new mongoose.Schema({
   district: String,
   pincode: String,
   profileImage: String,
-
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
+  },
+   lastActivity: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ["Active", "Inactive"],
+    default: "Active",
+  },
 });
 
 module.exports = mongoose.model("User", userSchema);

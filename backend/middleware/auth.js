@@ -1,13 +1,14 @@
+
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.split(" ")[1];
-  console.log("Received Token:", token);
+// console.log("authtoken-old" , token)
   if (!token) return res.status(401).json({ message: "Access Denied" });
 
   try {
     const verified = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Verified User:", verified);
+    // console.log("verified" , verified)
     req.user = verified;
     next();
   } catch (err) {
@@ -15,4 +16,7 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+module.exports = authMiddleware ;
+
+
+

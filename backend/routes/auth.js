@@ -2,10 +2,9 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-
 const upload = require("../middleware/upload");
-
 const router = express.Router();
+const { forgotPassword, resetPassword } = require("../controllers/authController");
 
 
 
@@ -70,6 +69,7 @@ router.post("/signup", upload.single("profileImage"), async (req, res) => {
         email: newUser.email,
         firstName: newUser.firstName,
         profileImage: newUser.profileImage,
+        
       },
     });
   } catch (err) {
@@ -95,7 +95,7 @@ router.post("/login", async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id , role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -108,6 +108,7 @@ router.post("/login", async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         profileImage: user.profileImage,
+        role: user.role,
       },
     });
   } catch (err) {
@@ -118,6 +119,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 module.exports = router;
 
